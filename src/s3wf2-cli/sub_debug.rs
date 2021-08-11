@@ -1,12 +1,13 @@
-use clap::ArgMatches;
-use std::{error::Error, fs::File, io};
+use std::{fs::File, io};
 
-use crate::util::exit_document_errors;
+use anyhow::Result;
+
+use crate::{util::exit_document_errors, DebugArguments};
 use s3wf2::parser::Parser;
 
-pub fn subcommand_debug(args: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub(crate) fn subcommand_debug(args: DebugArguments) -> Result<()> {
     let (mut stdin, mut file);
-    let source: &mut dyn io::Read = match args.value_of("INPUT") {
+    let source: &mut dyn io::Read = match args.input.as_deref() {
         None | Some("-") => {
             stdin = io::stdin();
             &mut stdin

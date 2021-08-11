@@ -2,19 +2,21 @@ use crate::{
     document::{Block, BlockNode, CharacterSet, Document, Element, ElementNode, LineType},
     error::{Error, ErrorKind, SemanticErrorKind},
 };
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 const ASCII_WHITESPACES: &[char] = &[' ', '\t', '\r', '\n'];
 
-lazy_static! {
-    static ref REGEX_LINE_HEAD: Regex = Regex::new(r"^(:|/|@)([A-Za-z0-9_]+)(\s+(.*))?$").unwrap();
-    static ref REGEX_SPACES: Regex = Regex::new(r"\s+").unwrap();
-    static ref REGEX_CHARACTER_ID: Regex = Regex::new(r"^[A-Za-z0-9_]+$").unwrap();
-    static ref REGEX_COLORCODE: Regex = Regex::new(r"^#([A-Fa-f0-9]{3,6})$").unwrap();
-    // MEMO: regex crate does not support (?=expr) syntax, so use capture groups instead
-    static ref REGEX_ELEMENT_LINE: Regex = Regex::new(r"\[(@?[A-Za-z0-9_]+)([\[\]{}]|\s+)|[\]{}]").unwrap();
-}
+static REGEX_LINE_HEAD: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^(:|/|@)([A-Za-z0-9_]+)(\s+(.*))?$").expect("Invalid Regex Literal"));
+static REGEX_SPACES: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s+").expect("Invalid Regex Literal"));
+static REGEX_CHARACTER_ID: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^[A-Za-z0-9_]+$").expect("Invalid Regex Literal"));
+static REGEX_COLORCODE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^#([A-Fa-f0-9]{3,6})$").expect("Invalid Regex Literal"));
+static REGEX_ELEMENT_LINE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"\[(@?[A-Za-z0-9_]+)([\[\]{}]|\s+)|[\]{}]").expect("Invalid Regex Literal")
+});
 
 /// Separated trimming implementations.
 pub struct Trimmer;

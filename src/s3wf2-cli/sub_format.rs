@@ -1,18 +1,17 @@
-use clap::ArgMatches;
-use std::{error::Error, fs::File, io, io::prelude::*, time::Instant};
+use std::{fs::File, io, io::prelude::*, time::Instant};
 
-use crate::util::exit_document_errors;
+use anyhow::{bail, Result};
+
+use crate::{util::exit_document_errors, FormatArguments};
 use s3wf2::{
     document::Document,
     emitter::{console::ConsoleEmitter, html::HtmlEmitter, Emit},
     parser::Parser,
 };
 
-pub fn subcommand_format(args: &ArgMatches) -> Result<(), Box<dyn Error>> {
-    let verbose = args.is_present("verbose");
-
+pub(crate) fn subcommand_format(args: FormatArguments) -> Result<()> {
     let stdin;
-    let mut source: Box<dyn io::Read> = match args.value_of("INPUT") {
+    let mut source: Box<dyn io::Read> = match args.input.as_deref() {
         None | Some("-") => {
             stdin = io::stdin();
             Box::new(io::BufReader::new(stdin.lock()))
@@ -31,7 +30,7 @@ pub fn subcommand_format(args: &ArgMatches) -> Result<(), Box<dyn Error>> {
         }
     };
     let parse_time = parse_started.elapsed();
-    if verbose {
+    if args.verbose {
         use ansi_term::Color::Green;
         eprintln!(
             "{} It took {}ms.",
@@ -40,40 +39,42 @@ pub fn subcommand_format(args: &ArgMatches) -> Result<(), Box<dyn Error>> {
         );
     }
 
-    match args.value_of("type") {
-        Some("html") => {
-            emit_html(&document, args)?;
+    match args.format_type.as_deref() {
+        Some("html") | None => {
+            emit_html(&document, args.output)?;
         }
         Some("console") => {
             emit_console(&document)?;
         }
-        _ => panic!("Invalid format type"),
+        Some(otherwise) => bail!("Unknown format type: {}", otherwise),
     }
 
     Ok(())
 }
 
-fn emit_html(document: &Document, args: &ArgMatches) -> Result<(), io::Error> {
+fn emit_html(document: &Document, output: Option<String>) -> Result<()> {
     let mut emitter = HtmlEmitter::new(4);
-    match args.value_of("output") {
+    match output.as_deref() {
         None | Some("-") => {
             let stdout = io::stdout();
             let mut writer = io::BufWriter::with_capacity(1 << 16, stdout.lock());
             emitter.emit(&mut writer, document)?;
-            writer.flush()
+            writer.flush()?;
         }
         Some(file) => {
             let mut writer = io::BufWriter::with_capacity(1 << 16, File::create(file)?);
             emitter.emit(&mut writer, document)?;
-            writer.flush()
+            writer.flush()?;
         }
     }
+    Ok(())
 }
 
-fn emit_console(document: &Document) -> Result<(), io::Error> {
+fn emit_console(document: &Document) -> Result<()> {
     let mut emitter = ConsoleEmitter::new();
     let stdout = io::stdout();
     let mut writer = io::BufWriter::with_capacity(1 << 16, stdout.lock());
     emitter.emit(&mut writer, document)?;
-    writer.flush()
+    writer.flush()?;
+    Ok(())
 }

@@ -220,7 +220,7 @@ pub unsafe extern "C" fn s3wf2_get_document_string(
 #[no_mangle]
 pub unsafe extern "C" fn s3wf2_get_document_buffered(
     environment: *mut Environment,
-    callback: fn(*const c_char, size_t, *mut c_void) -> c_int,
+    callback: extern "C" fn(*const c_char, size_t, *mut c_void) -> c_int,
     state: *mut c_void,
 ) -> Status {
     let environment = match Environment::resurrect(environment) {

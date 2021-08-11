@@ -5,7 +5,6 @@ use crate::{
     emitter::Emit,
 };
 use ansi_term::{Colour, Style};
-use lazy_static::lazy_static;
 use std::io::{prelude::*, Result};
 
 #[derive(PartialEq)]
@@ -35,26 +34,24 @@ pub struct ConsoleEmitter {
     newline_state: NewlineState,
 }
 
-lazy_static! {
-    static ref MALE_COLORS: Vec<Colour> = vec![
-        Colour::Fixed(26),
-        Colour::Fixed(80),
-        Colour::Fixed(74),
-        Colour::Fixed(62)
-    ];
-    static ref FEMALE_COLORS: Vec<Colour> = vec![
-        Colour::Fixed(170),
-        Colour::Fixed(179),
-        Colour::Fixed(209),
-        Colour::Fixed(229)
-    ];
-    static ref MOB_COLORS: Vec<Colour> = vec![
-        Colour::Fixed(195),
-        Colour::Fixed(230),
-        Colour::Fixed(153),
-        Colour::Fixed(158)
-    ];
-}
+const MALE_COLORS: &[Colour] = &[
+    Colour::Fixed(26),
+    Colour::Fixed(80),
+    Colour::Fixed(74),
+    Colour::Fixed(62),
+];
+const FEMALE_COLORS: &[Colour] = &[
+    Colour::Fixed(170),
+    Colour::Fixed(179),
+    Colour::Fixed(209),
+    Colour::Fixed(229),
+];
+const MOB_COLORS: &[Colour] = &[
+    Colour::Fixed(195),
+    Colour::Fixed(230),
+    Colour::Fixed(153),
+    Colour::Fixed(158),
+];
 
 impl ConsoleEmitter {
     pub fn new() -> ConsoleEmitter {
